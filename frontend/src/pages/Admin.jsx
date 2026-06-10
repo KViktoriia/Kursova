@@ -39,7 +39,7 @@ function Admin() {
   const fetchFeedbacks = () => {
     setFeedbacksLoading(true);
     setFeedbacksError(null);
-    fetch('http://localhost:5000/api/contacts')
+    fetch('/api/contacts')
       .then((res) => {
         if (!res.ok) throw new Error('Не вдалося отримати повідомлення');
         return res.json();
@@ -58,7 +58,7 @@ function Admin() {
   const fetchProjects = () => {
     setProjectsLoading(true);
     setProjectsError(null);
-    fetch('http://localhost:5000/api/projects')
+    fetch('/api/projects')
       .then((res) => {
         if (!res.ok) throw new Error('Не вдалося завантажити проекти');
         return res.json();
@@ -86,7 +86,7 @@ function Admin() {
     e.preventDefault();
     setNewsStatus({ submitting: true, success: false, error: null });
 
-    fetch('http://localhost:5000/api/news', {
+    fetch('/api/news', {
       method: 'POST',
       headers: {
         'Content-Type': 'application/json'

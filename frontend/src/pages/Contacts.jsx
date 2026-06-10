@@ -26,7 +26,7 @@ function Contacts() {
     e.preventDefault();
     setStatus({ submitting: true, success: false, error: null });
 
-    fetch('http://localhost:5000/api/contacts', {
+    fetch('/api/contacts', {
       method: 'POST',
       headers: {
         'Content-Type': 'application/json'

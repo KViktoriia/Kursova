@@ -19,7 +19,7 @@ function News() {
 
   // Fetch news from API
   useEffect(() => {
-    fetch('http://localhost:5000/api/news')
+    fetch('/api/news')
       .then((res) => {
         if (!res.ok) throw new Error('Помилка завантаження новин з сервера');
         return res.json();

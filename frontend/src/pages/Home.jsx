@@ -9,7 +9,7 @@ function Home() {
   const [error, setError] = useState(null);
 
   useEffect(() => {
-    fetch('http://localhost:5000/api/news')
+    fetch('/api/news')
       .then((res) => {
         if (!res.ok) throw new Error('Помилка завантаження новин');
         return res.json();

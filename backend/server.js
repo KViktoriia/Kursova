@@ -101,6 +101,14 @@ app.get('/api/contacts', (req, res) => {
   });
 });
 
+// Serve static files from the React frontend build folder
+app.use(express.static(path.join(__dirname, '../frontend/dist')));
+
+// For any request that doesn't match an API route, send back the index.html from React
+app.get('*', (req, res) => {
+  res.sendFile(path.join(__dirname, '../frontend/dist/index.html'));
+});
+
 app.listen(PORT, () => {
   console.log(`Server is running on port ${PORT}`);
 });
