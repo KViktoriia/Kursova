@@ -24,6 +24,18 @@ function Contacts() {
 
   const handleSubmit = (e) => {
     e.preventDefault();
+    
+    // Strict email format check (must contain @ and a valid domain extension, e.g. .com, .net, .ua)
+    const emailRegex = /^[a-zA-Z0-9._%+-]+@[a-zA-Z0-9.-]+\.[a-zA-Z]{2,}$/;
+    if (!emailRegex.test(formData.email)) {
+      setStatus({
+        submitting: false,
+        success: false,
+        error: 'Будь ласка, введіть коректну адресу електронної пошти (наприклад, ім\'я@gmail.com або ім\'я@ukr.net)'
+      });
+      return;
+    }
+
     setStatus({ submitting: true, success: false, error: null });
 
     fetch('/api/contacts', {
