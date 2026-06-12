@@ -27,3 +27,8 @@ backend/scientific_center.db-journal
 *.njsproj
 *.sln
 *.sw?
+
+# Document templates and logs
+*.docx
+*.txt
+
