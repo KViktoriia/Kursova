@@ -42,8 +42,34 @@ const slidesData = [
 
 function Slider() {
   const [current, setCurrent] = useState(0);
+  const [touchStartX, setTouchStartX] = useState(0);
+  const [touchEndX, setTouchEndX] = useState(0);
   const length = slidesData.length;
   const timeoutRef = useRef(null);
+
+  const handleTouchStart = (e) => {
+    setTouchStartX(e.targetTouches[0].clientX);
+  };
+
+  const handleTouchMove = (e) => {
+    setTouchEndX(e.targetTouches[0].clientX);
+  };
+
+  const handleTouchEnd = () => {
+    if (!touchStartX || !touchEndX) return;
+    const distance = touchStartX - touchEndX;
+    const minSwipeDistance = 50;
+
+    if (distance > minSwipeDistance) {
+      nextSlide();
+    }
+    if (distance < -minSwipeDistance) {
+      prevSlide();
+    }
+    
+    setTouchStartX(0);
+    setTouchEndX(0);
+  };
 
   const nextSlide = () => {
     setCurrent(current === length - 1 ? 0 : current + 1);
@@ -78,7 +104,12 @@ function Slider() {
   }
 
   return (
-    <div className="slider-container">
+    <div 
+      className="slider-container"
+      onTouchStart={handleTouchStart}
+      onTouchMove={handleTouchMove}
+      onTouchEnd={handleTouchEnd}
+    >
       {/* Left Arrow */}
       <button className="slider-btn prev" onClick={prevSlide} aria-label="Previous slide">
         <ChevronLeft size={24} />

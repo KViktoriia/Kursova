@@ -25,12 +25,14 @@
   --transition-smooth: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
 }
 
-body {
+html, body, #root {
   font-family: var(--font-sans);
   color: var(--text-dark);
   background-color: var(--bg-light);
   overflow-x: hidden;
   margin: 0;
+  padding: 0;
+  width: 100%;
 }
 
 h1, h2, h3, h4, h5, h6 {
