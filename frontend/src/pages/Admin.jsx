@@ -1,5 +1,5 @@
 import React, { useState, useEffect } from 'react';
-import { PlusCircle, MessageSquare, Database, CheckCircle, AlertTriangle, FileText } from 'lucide-react';
+import { PlusCircle, MessageSquare, Database, CheckCircle, AlertTriangle, FileText, Eye, Archive, ArrowUpLeft } from 'lucide-react';
 
 function Admin() {
   const [activeTab, setActiveTab] = useState('add-news');
@@ -19,6 +19,8 @@ function Admin() {
   const [feedbacks, setFeedbacks] = useState([]);
   const [feedbacksLoading, setFeedbacksLoading] = useState(false);
   const [feedbacksError, setFeedbacksError] = useState(null);
+  const [feedbackSubTab, setFeedbackSubTab] = useState('unread'); // 'unread' or 'read'
+  const [selectedFeedback, setSelectedFeedback] = useState(null);
 
   // States for projects
   const [projects, setProjects] = useState([]);
@@ -27,14 +29,11 @@ function Admin() {
 
   const categories = ['Гранти', 'Дослідження', 'Патенти', 'Конференції', 'Публікації', 'Міжнародна співпраця'];
 
-  // Handle Tab changes
+  // Load database tables on mount
   useEffect(() => {
-    if (activeTab === 'view-feedback') {
-      fetchFeedbacks();
-    } else if (activeTab === 'view-projects') {
-      fetchProjects();
-    }
-  }, [activeTab]);
+    fetchFeedbacks();
+    fetchProjects();
+  }, []);
 
   const fetchFeedbacks = () => {
     setFeedbacksLoading(true);
@@ -72,6 +71,39 @@ function Admin() {
         setProjectsError(err.message);
         setProjectsLoading(false);
       });
+  };
+
+  // Mark message status actions
+  const handleMarkAsRead = (id) => {
+    fetch(`/api/contacts/${id}/read`, { method: 'PUT' })
+      .then((res) => {
+        if (!res.ok) throw new Error('Помилка оновлення статусу');
+        fetchFeedbacks();
+      })
+      .catch((err) => console.error(err));
+  };
+
+  const handleMarkAsUnread = (id) => {
+    fetch(`/api/contacts/${id}/unread`, { method: 'PUT' })
+      .then((res) => {
+        if (!res.ok) throw new Error('Помилка оновлення статусу');
+        fetchFeedbacks();
+      })
+      .catch((err) => console.error(err));
+  };
+
+  const handleReadMessage = (feedback) => {
+    setSelectedFeedback(feedback);
+    if (!feedback.is_read) {
+      fetch(`/api/contacts/${feedback.id}/read`, { method: 'PUT' })
+        .then((res) => {
+          if (res.ok) {
+            // Update local state to show as read immediately and update badges
+            setFeedbacks(prev => prev.map(f => f.id === feedback.id ? { ...f, is_read: 1 } : f));
+          }
+        })
+        .catch((err) => console.error(err));
+    }
   };
 
   // News Form submission
@@ -115,6 +147,13 @@ function Admin() {
       });
   };
 
+  // Compute counts
+  const unreadFeedbacks = feedbacks.filter(f => !f.is_read);
+  const readFeedbacks = feedbacks.filter(f => f.is_read);
+  const unreadCount = unreadFeedbacks.length;
+
+  const displayedFeedbacks = feedbackSubTab === 'unread' ? unreadFeedbacks : readFeedbacks;
+
   return (
     <div className="container py-5">
       {/* Intro */}
@@ -124,7 +163,7 @@ function Admin() {
         </span>
         <h1 className="fw-bold mb-3 text-gradient display-5">Кабінет керування базою даних</h1>
         <p className="lead text-muted mx-auto" style={{ maxWidth: '750px' }}>
-          Демонстрація REST API запитів та взаємодії з базою даних SQLite (3-й ступінь складності).
+          Керування матеріалами та запитами користувачів наукового центру.
         </p>
       </section>
 
@@ -147,14 +186,14 @@ function Admin() {
               </button>
               <button
                 onClick={() => setActiveTab('view-feedback')}
-                className={`btn text-start py-3 px-3 rounded-3 border-0 d-flex align-items-center gap-2 ${
+                className={`btn text-start py-3 px-3 rounded-3 border-0 d-flex align-items-center gap-2 w-100 ${
                   activeTab === 'view-feedback' ? 'btn-premium text-white' : 'bg-light hover-bg-light text-dark'
                 }`}
               >
                 <MessageSquare size={18} />
                 Повідомлення
-                {feedbacks.length > 0 && activeTab !== 'view-feedback' && (
-                  <span className="badge bg-danger ms-auto">{feedbacks.length}</span>
+                {unreadCount > 0 && (
+                  <span className="badge bg-danger ms-auto rounded-pill">{unreadCount}</span>
                 )}
               </button>
               <button
@@ -176,9 +215,6 @@ function Admin() {
           {activeTab === 'add-news' && (
             <div className="card border-0 glass-card p-4">
               <h3 className="fw-bold mb-4 text-dark">Створити нову новину</h3>
-              <p className="text-muted small mb-4">
-                Заповніть форму нижче, щоб записати нову публікацію безпосередньо у таблицю <code>news</code> бази даних SQLite.
-              </p>
 
               {newsStatus.success && (
                 <div className="alert alert-success border-0 shadow-sm d-flex align-items-center gap-2 mb-4" role="alert">
@@ -294,15 +330,40 @@ function Admin() {
           {/* TAB 2: VIEW FEEDBACKS */}
           {activeTab === 'view-feedback' && (
             <div className="card border-0 glass-card p-4">
-              <div className="d-flex justify-content-between align-items-center mb-4">
+              <div className="d-flex justify-content-between align-items-center mb-3">
                 <h3 className="fw-bold mb-0 text-dark">Зворотний зв'язок з контактної форми</h3>
                 <button className="btn btn-outline-secondary btn-sm rounded-pill" onClick={fetchFeedbacks}>
                   Оновити
                 </button>
               </div>
-              <p className="text-muted small mb-4">
-                Список повідомлень, збережених у таблиці <code>contacts</code> при заповненні форми на сторінці Контакти.
-              </p>
+
+              {/* Feedbacks Sub-Tabs */}
+              <div className="d-flex border-bottom mb-4">
+                <button
+                  onClick={() => setFeedbackSubTab('unread')}
+                  className={`btn px-4 py-2 border-0 rounded-0 fw-semibold position-relative bg-transparent ${
+                    feedbackSubTab === 'unread' ? 'text-info border-bottom border-2 border-info fw-bold' : 'text-muted'
+                  }`}
+                  style={{ borderBottom: feedbackSubTab === 'unread' ? '2px solid var(--secondary-color)' : 'none' }}
+                >
+                  Нові повідомлення
+                  {unreadCount > 0 && (
+                    <span className="badge bg-danger ms-2 rounded-pill">{unreadCount}</span>
+                  )}
+                </button>
+                <button
+                  onClick={() => setFeedbackSubTab('read')}
+                  className={`btn px-4 py-2 border-0 rounded-0 fw-semibold position-relative bg-transparent ${
+                    feedbackSubTab === 'read' ? 'text-info border-bottom border-2 border-info fw-bold' : 'text-muted'
+                  }`}
+                  style={{ borderBottom: feedbackSubTab === 'read' ? '2px solid var(--secondary-color)' : 'none' }}
+                >
+                  Прочитані / Архів
+                  {readFeedbacks.length > 0 && (
+                    <span className="badge bg-secondary ms-2 rounded-pill">{readFeedbacks.length}</span>
+                  )}
+                </button>
+              </div>
 
               {feedbacksLoading ? (
                 <div className="text-center py-5">
@@ -312,23 +373,27 @@ function Admin() {
                 <div className="alert alert-danger border-0 shadow-sm text-center py-3">
                   <AlertTriangle className="me-2 d-inline" /> {feedbacksError}
                 </div>
-              ) : feedbacks.length === 0 ? (
+              ) : displayedFeedbacks.length === 0 ? (
                 <div className="text-center py-5 bg-white border border-light rounded-3">
-                  <p className="text-muted mb-0">Повідомлень поки що немає.</p>
+                  <p className="text-muted mb-0">
+                    {feedbackSubTab === 'unread' 
+                      ? 'Немає нових повідомлень. Усі листи прочитано.' 
+                      : 'Архів прочитаних листів порожній.'}
+                  </p>
                 </div>
               ) : (
                 <div className="table-responsive admin-table">
-                  <table className="table table-hover mb-0">
+                  <table className="table table-hover align-middle mb-0">
                     <thead className="table-light">
                       <tr>
                         <th className="px-4 py-3">Дата</th>
                         <th className="py-3">Відправник</th>
                         <th className="py-3">Тема</th>
-                        <th className="px-4 py-3">Повідомлення</th>
+                        <th className="px-4 py-3 text-end">Дії</th>
                       </tr>
                     </thead>
                     <tbody>
-                      {feedbacks.map((f) => (
+                      {displayedFeedbacks.map((f) => (
                         <tr key={f.id}>
                           <td className="px-4 py-3 text-muted small">
                             {new Date(f.created_at).toLocaleString('uk-UA')}
@@ -338,8 +403,34 @@ function Admin() {
                             <span className="small text-muted">{f.email}</span>
                           </td>
                           <td className="py-3 fw-semibold text-dark">{f.subject}</td>
-                          <td className="px-4 py-3 text-muted small" style={{ maxWidth: '300px' }}>
-                            {f.message}
+                          <td className="px-4 py-3 text-end">
+                            <div className="d-flex justify-content-end gap-2">
+                              <button 
+                                className="btn btn-outline-info btn-sm rounded-pill d-flex align-items-center gap-1"
+                                onClick={() => handleReadMessage(f)}
+                                title="Читати повністю"
+                              >
+                                <Eye size={14} /> Читати
+                              </button>
+                              
+                              {feedbackSubTab === 'unread' ? (
+                                <button 
+                                  className="btn btn-success btn-sm rounded-pill d-flex align-items-center gap-1"
+                                  onClick={() => handleMarkAsRead(f.id)}
+                                  title="Архівувати як прочитане"
+                                >
+                                  <Archive size={14} /> Прочитано
+                                </button>
+                              ) : (
+                                <button 
+                                  className="btn btn-outline-secondary btn-sm rounded-pill d-flex align-items-center gap-1"
+                                  onClick={() => handleMarkAsUnread(f.id)}
+                                  title="Повернути в непрочитані"
+                                >
+                                  <ArrowUpLeft size={14} /> У нові
+                                </button>
+                              )}
+                            </div>
                           </td>
                         </tr>
                       ))}
@@ -359,9 +450,6 @@ function Admin() {
                   Оновити
                 </button>
               </div>
-              <p className="text-muted small mb-4">
-                Перегляд проектів з таблиці <code>projects</code>.
-              </p>
 
               {projectsLoading ? (
                 <div className="text-center py-5">
@@ -410,6 +498,81 @@ function Admin() {
           )}
         </div>
       </div>
+
+      {/* Message Reader Modal */}
+      {selectedFeedback && (
+        <div 
+          className="modal fade show d-block" 
+          style={{ backgroundColor: 'rgba(11, 25, 44, 0.85)', zIndex: 1060 }}
+          onClick={() => setSelectedFeedback(null)}
+          tabIndex="-1"
+        >
+          <div className="modal-dialog modal-dialog-centered" onClick={e => e.stopPropagation()}>
+            <div className="modal-content custom-modal-content border-0 shadow-lg">
+              <div className="modal-header custom-modal-header d-flex justify-content-between align-items-center">
+                <h5 className="fw-bold mb-0 text-white">Перегляд повідомлення</h5>
+                <button type="button" className="btn-close btn-close-white" onClick={() => setSelectedFeedback(null)} aria-label="Close"></button>
+              </div>
+              <div className="modal-body p-4">
+                <div className="mb-3">
+                  <span className="text-muted small d-block fw-semibold mb-1">Відправник:</span>
+                  <div className="bg-light p-2 rounded text-dark">
+                    <strong>{selectedFeedback.name}</strong> 
+                    <span className="text-muted small"> ({selectedFeedback.email})</span>
+                  </div>
+                </div>
+                <div className="mb-3">
+                  <span className="text-muted small d-block fw-semibold mb-1">Тема повідомлення:</span>
+                  <div className="bg-light p-2 rounded text-dark fw-bold">
+                    {selectedFeedback.subject}
+                  </div>
+                </div>
+                <div className="mb-3">
+                  <span className="text-muted small d-block fw-semibold mb-1">Дата відправки:</span>
+                  <span className="text-dark small bg-light p-2 rounded d-block">
+                    {new Date(selectedFeedback.created_at).toLocaleString('uk-UA')}
+                  </span>
+                </div>
+                <hr className="my-3" />
+                <div className="mb-2">
+                  <span className="text-muted small d-block fw-semibold mb-2">Текст листа:</span>
+                  <div className="bg-light p-3 rounded text-dark" style={{ whiteSpace: 'pre-line', lineHeight: '1.6', fontSize: '0.95rem' }}>
+                    {selectedFeedback.message}
+                  </div>
+                </div>
+              </div>
+              <div className="modal-footer bg-light border-0 p-3 justify-content-between">
+                <div>
+                  {!selectedFeedback.is_read || feedbacks.find(f => f.id === selectedFeedback.id)?.is_read === 0 ? (
+                    <button 
+                      className="btn btn-success rounded-pill px-4 btn-sm d-flex align-items-center gap-1" 
+                      onClick={() => {
+                        handleMarkAsRead(selectedFeedback.id);
+                        setSelectedFeedback(null);
+                      }}
+                    >
+                      <Archive size={14} /> Прочитано
+                    </button>
+                  ) : (
+                    <button 
+                      className="btn btn-outline-secondary rounded-pill px-4 btn-sm d-flex align-items-center gap-1" 
+                      onClick={() => {
+                        handleMarkAsUnread(selectedFeedback.id);
+                        setSelectedFeedback(null);
+                      }}
+                    >
+                      <ArrowUpLeft size={14} /> У непрочитані
+                    </button>
+                  )}
+                </div>
+                <button type="button" className="btn btn-secondary rounded-pill px-4 btn-sm" onClick={() => setSelectedFeedback(null)}>
+                  Закрити
+                </button>
+              </div>
+            </div>
+          </div>
+        </div>
+      )}
     </div>
   );
 }

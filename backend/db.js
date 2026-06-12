@@ -46,6 +46,7 @@ db.serialize(() => {
       email TEXT NOT NULL,
       subject TEXT NOT NULL,
       message TEXT NOT NULL,
+      is_read INTEGER DEFAULT 0,
       created_at TEXT DEFAULT CURRENT_TIMESTAMP
     )
   `);

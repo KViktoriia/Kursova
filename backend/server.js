@@ -101,6 +101,33 @@ app.get('/api/contacts', (req, res) => {
   });
 });
 
+// 6. PUT mark contact submission as read
+app.put('/api/contacts/:id/read', (req, res) => {
+  const { id } = req.params;
+  const query = 'UPDATE contacts SET is_read = 1 WHERE id = ?';
+  db.run(query, [id], function(err) {
+    if (err) {
+      res.status(500).json({ error: err.message });
+      return;
+    }
+    res.json({ message: 'Повідомлення позначено як прочитане' });
+  });
+});
+
+// 7. PUT mark contact submission as unread
+app.put('/api/contacts/:id/unread', (req, res) => {
+  const { id } = req.params;
+  const query = 'UPDATE contacts SET is_read = 0 WHERE id = ?';
+  db.run(query, [id], function(err) {
+    if (err) {
+      res.status(500).json({ error: err.message });
+      return;
+    }
+    res.json({ message: 'Повідомлення позначено як непрочитане' });
+  });
+});
+
+
 // Serve static files from the React frontend build folder
 app.use(express.static(path.join(__dirname, '../frontend/dist')));
 
