@@ -382,61 +382,107 @@ function Admin() {
                   </p>
                 </div>
               ) : (
-                <div className="table-responsive admin-table">
-                  <table className="table table-hover align-middle mb-0">
-                    <thead className="table-light">
-                      <tr>
-                        <th className="px-4 py-3">Дата</th>
-                        <th className="py-3">Відправник</th>
-                        <th className="py-3">Тема</th>
-                        <th className="px-4 py-3 text-end">Дії</th>
-                      </tr>
-                    </thead>
-                    <tbody>
-                      {displayedFeedbacks.map((f) => (
-                        <tr key={f.id}>
-                          <td className="px-4 py-3 text-muted small">
-                            {new Date(f.created_at).toLocaleString('uk-UA')}
-                          </td>
-                          <td className="py-3">
-                            <span className="fw-bold text-dark d-block">{f.name}</span>
-                            <span className="small text-muted">{f.email}</span>
-                          </td>
-                          <td className="py-3 fw-semibold text-dark">{f.subject}</td>
-                          <td className="px-4 py-3 text-end">
-                            <div className="d-flex justify-content-end gap-2">
-                              <button 
-                                className="btn btn-outline-info btn-sm rounded-pill d-flex align-items-center gap-1"
-                                onClick={() => handleReadMessage(f)}
-                                title="Читати повністю"
-                              >
-                                <Eye size={14} /> Читати
-                              </button>
-                              
-                              {feedbackSubTab === 'unread' ? (
-                                <button 
-                                  className="btn btn-success btn-sm rounded-pill d-flex align-items-center gap-1"
-                                  onClick={() => handleMarkAsRead(f.id)}
-                                  title="Архівувати як прочитане"
-                                >
-                                  <Archive size={14} /> Прочитано
-                                </button>
-                              ) : (
-                                <button 
-                                  className="btn btn-outline-secondary btn-sm rounded-pill d-flex align-items-center gap-1"
-                                  onClick={() => handleMarkAsUnread(f.id)}
-                                  title="Повернути в непрочитані"
-                                >
-                                  <ArrowUpLeft size={14} /> У нові
-                                </button>
-                              )}
-                            </div>
-                          </td>
+                <>
+                  {/* Desktop Table View */}
+                  <div className="d-none d-md-block table-responsive admin-table">
+                    <table className="table table-hover align-middle mb-0">
+                      <thead className="table-light">
+                        <tr>
+                          <th className="px-4 py-3">Дата</th>
+                          <th className="py-3">Відправник</th>
+                          <th className="py-3">Тема</th>
+                          <th className="px-4 py-3 text-end">Дії</th>
                         </tr>
-                      ))}
-                    </tbody>
-                  </table>
-                </div>
+                      </thead>
+                      <tbody>
+                        {displayedFeedbacks.map((f) => (
+                          <tr key={f.id}>
+                            <td className="px-4 py-3 text-muted small">
+                              {new Date(f.created_at).toLocaleString('uk-UA')}
+                            </td>
+                            <td className="py-3">
+                              <span className="fw-bold text-dark d-block">{f.name}</span>
+                              <span className="small text-muted">{f.email}</span>
+                            </td>
+                            <td className="py-3 fw-semibold text-dark">{f.subject}</td>
+                            <td className="px-4 py-3 text-end">
+                              <div className="d-flex justify-content-end gap-2">
+                                <button 
+                                  className="btn btn-outline-info btn-sm rounded-pill d-flex align-items-center gap-1"
+                                  onClick={() => handleReadMessage(f)}
+                                  title="Читати повністю"
+                                >
+                                  <Eye size={14} /> Читати
+                                </button>
+                                
+                                {feedbackSubTab === 'unread' ? (
+                                  <button 
+                                    className="btn btn-success btn-sm rounded-pill d-flex align-items-center gap-1"
+                                    onClick={() => handleMarkAsRead(f.id)}
+                                    title="Архівувати як прочитане"
+                                  >
+                                    <Archive size={14} /> Прочитано
+                                  </button>
+                                ) : (
+                                  <button 
+                                    className="btn btn-outline-secondary btn-sm rounded-pill d-flex align-items-center gap-1"
+                                    onClick={() => handleMarkAsUnread(f.id)}
+                                    title="Повернути в непрочитані"
+                                  >
+                                    <ArrowUpLeft size={14} /> У нові
+                                  </button>
+                                )}
+                              </div>
+                            </td>
+                          </tr>
+                        ))}
+                      </tbody>
+                    </table>
+                  </div>
+
+                  {/* Mobile Card List View */}
+                  <div className="d-block d-md-none">
+                    {displayedFeedbacks.map((f) => (
+                      <div key={f.id} className="card p-3 mb-3 border border-light shadow-sm rounded-3 bg-white">
+                        <div className="d-flex justify-content-between align-items-center mb-2">
+                          <span className="text-muted small">
+                            {new Date(f.created_at).toLocaleString('uk-UA')}
+                          </span>
+                        </div>
+                        <h6 className="fw-bold text-dark mb-1">{f.name}</h6>
+                        <p className="small text-muted mb-2">{f.email}</p>
+                        <div className="mb-3">
+                          <span className="text-muted small d-block fw-semibold">Тема:</span>
+                          <span className="text-dark small fw-semibold">{f.subject}</span>
+                        </div>
+                        <div className="d-flex gap-2">
+                          <button 
+                            className="btn btn-outline-info btn-sm rounded-pill d-flex align-items-center gap-1 flex-grow-1 justify-content-center"
+                            onClick={() => handleReadMessage(f)}
+                          >
+                            <Eye size={14} /> Читати
+                          </button>
+                          
+                          {feedbackSubTab === 'unread' ? (
+                            <button 
+                              className="btn btn-success btn-sm rounded-pill d-flex align-items-center gap-1 flex-grow-1 justify-content-center"
+                              onClick={() => handleMarkAsRead(f.id)}
+                            >
+                              <Archive size={14} /> Прочитано
+                            </button>
+                          ) : (
+                            <button 
+                              className="btn btn-outline-secondary btn-sm rounded-pill d-flex align-items-center gap-1 flex-grow-1 justify-content-center"
+                              onClick={() => handleMarkAsUnread(f.id)}
+                            >
+                              <ArrowUpLeft size={14} /> У нові
+                            </button>
+                          )}
+                        </div>
+                      </div>
+                    ))}
+                  </div>
+                </>
               )}
             </div>
           )}
@@ -460,39 +506,69 @@ function Admin() {
                   <AlertTriangle className="me-2 d-inline" /> {projectsError}
                 </div>
               ) : (
-                <div className="table-responsive admin-table">
-                  <table className="table table-hover mb-0">
-                    <thead className="table-light">
-                      <tr>
-                        <th className="px-4 py-3">Рік початку</th>
-                        <th className="py-3">Назва проекту</th>
-                        <th className="py-3">Керівник</th>
-                        <th className="py-3">Бюджет</th>
-                        <th className="px-4 py-3">Статус</th>
-                      </tr>
-                    </thead>
-                    <tbody>
-                      {projects.map((p) => (
-                        <tr key={p.id}>
-                          <td className="px-4 py-3 fw-bold text-dark">{p.start_year}</td>
-                          <td className="py-3">
-                            <span className="fw-bold text-dark d-block">{p.title}</span>
-                            <span className="small text-muted">{p.description}</span>
-                          </td>
-                          <td className="py-3 small text-dark">{p.lead}</td>
-                          <td className="py-3 fw-semibold text-info">{p.budget}</td>
-                          <td className="px-4 py-3">
-                            <span className={`badge ${
-                              p.status === 'Завершено' ? 'bg-success' : p.status === 'У процесі виконання' ? 'bg-primary' : 'bg-secondary'
-                            }`}>
-                              {p.status}
-                            </span>
-                          </td>
+                <>
+                  {/* Desktop Table View */}
+                  <div className="d-none d-md-block table-responsive admin-table">
+                    <table className="table table-hover mb-0">
+                      <thead className="table-light">
+                        <tr>
+                          <th className="px-4 py-3">Рік початку</th>
+                          <th className="py-3">Назва проекту</th>
+                          <th className="py-3">Керівник</th>
+                          <th className="py-3">Бюджет</th>
+                          <th className="px-4 py-3">Статус</th>
                         </tr>
-                      ))}
-                    </tbody>
-                  </table>
-                </div>
+                      </thead>
+                      <tbody>
+                        {projects.map((p) => (
+                          <tr key={p.id}>
+                            <td className="px-4 py-3 fw-bold text-dark">{p.start_year}</td>
+                            <td className="py-3">
+                              <span className="fw-bold text-dark d-block">{p.title}</span>
+                              <span className="small text-muted">{p.description}</span>
+                            </td>
+                            <td className="py-3 small text-dark">{p.lead}</td>
+                            <td className="py-3 fw-semibold text-info">{p.budget}</td>
+                            <td className="px-4 py-3">
+                              <span className={`badge ${
+                                p.status === 'Завершено' ? 'bg-success' : p.status === 'У процесі виконання' ? 'bg-primary' : 'bg-secondary'
+                              }`}>
+                                {p.status}
+                              </span>
+                            </td>
+                          </tr>
+                        ))}
+                      </tbody>
+                    </table>
+                  </div>
+
+                  {/* Mobile Card List View */}
+                  <div className="d-block d-md-none">
+                    {projects.map((p) => (
+                      <div key={p.id} className="card p-3 mb-3 border border-light shadow-sm rounded-3 bg-white">
+                        <div className="d-flex justify-content-between align-items-start mb-2">
+                          <span className="fw-bold text-dark">{p.start_year} рік</span>
+                          <span className={`badge ${
+                            p.status === 'Завершено' ? 'bg-success' : p.status === 'У процесі виконання' ? 'bg-primary' : 'bg-secondary'
+                          }`}>
+                            {p.status}
+                          </span>
+                        </div>
+                        <h6 className="fw-bold text-dark mb-2">{p.title}</h6>
+                        <p className="small text-muted mb-2">{p.description}</p>
+                        <hr className="my-2" />
+                        <div className="d-flex justify-content-between align-items-center small">
+                          <span className="text-muted">Керівник:</span>
+                          <span className="fw-semibold text-dark">{p.lead}</span>
+                        </div>
+                        <div className="d-flex justify-content-between align-items-center small mt-1">
+                          <span className="text-muted">Бюджет:</span>
+                          <span className="fw-bold text-info">{p.budget}</span>
+                        </div>
+                      </div>
+                    ))}
+                  </div>
+                </>
               )}
             </div>
           )}
